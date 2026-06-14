@@ -1,0 +1,20 @@
+{
+  "units": [
+    {
+      "id": "unit-1",
+      "name": "Fiber & Core Infrastructure Unit",
+      "description": "Handles entire building network blackouts, damaged fiber optic cables, structural switch failures, and core backbone links."
+    },
+    {
+      "id": "unit-2",
+      "name": "Helpdesk & LAN Routing Unit",
+      "description": "Handles office LAN port faults, wall jack replacements, single system IP configuration conflicts, and localized Wi-Fi router issues."
+    },
+    {
+      "id": "unit-3",
+      "name": "Network Operations Center (NOC)",
+      "description": "Handles institutional email access locks, departmental sub-domain setups, firewall white-listing, and server access exceptions."
+    }
+  ],
+  "tickets": []
+}
