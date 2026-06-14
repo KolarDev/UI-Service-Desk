@@ -18,6 +18,7 @@ export interface User {
 
 export interface Ticket {
   id: string;
+  ticketIdDisplay?: string;
   title: string;
   description: string;
   priority: Priority;

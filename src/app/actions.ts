@@ -1,8 +1,9 @@
 'use server';
 
 import { randomUUID } from 'crypto';
-import { addTicket, getUnits } from '@/lib/db';
+import { addTicket, getUnits, updateTicket } from '@/lib/db';
 import { Ticket, Priority, TicketStatus } from '@/types';
+import { revalidatePath } from 'next/cache';
 
 export interface CreateTicketInput {
   unitId: string;
@@ -50,10 +51,12 @@ export async function createTicketAction(input: CreateTicketInput) {
     }
 
     const now = new Date().toISOString();
+    const randomId = Math.floor(1000 + Math.random() * 9000);
 
     // 2. Package matching Ticket schema
     const newTicket: Ticket = {
       id: randomUUID(),
+      ticketIdDisplay: `UI-${randomId}`,
       title: input.title.trim(),
       description: input.description.trim(),
       priority: 'MEDIUM' as Priority,
@@ -75,5 +78,31 @@ export async function createTicketAction(input: CreateTicketInput) {
   } catch (error) {
     console.error('Failed to create ticket in action:', error);
     return { success: false, error: 'An unexpected error occurred while submitting your ticket.' };
+  }
+}
+
+export async function assignTicketAction(ticketId: string, engineerId: string) {
+  try {
+    if (!ticketId) {
+      return { success: false, error: 'Ticket ID is required.' };
+    }
+    if (!engineerId) {
+      return { success: false, error: 'Please select an engineer to assign.' };
+    }
+
+    const updated = updateTicket(ticketId, {
+      status: 'ASSIGNED',
+      assignedToId: engineerId,
+    });
+
+    if (!updated) {
+      return { success: false, error: 'Ticket not found or update failed.' };
+    }
+
+    revalidatePath('/dashboard/director');
+    return { success: true, ticket: updated };
+  } catch (error) {
+    console.error('Failed to assign ticket:', error);
+    return { success: false, error: 'An unexpected error occurred while assigning the ticket.' };
   }
 }

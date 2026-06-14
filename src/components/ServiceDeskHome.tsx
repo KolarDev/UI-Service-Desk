@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from 'react';
 import { Unit, Ticket } from '@/types';
 import { createTicketAction } from '@/app/actions';
+import Link from 'next/link';
 import { 
   Network, 
   HelpCircle, 
@@ -125,10 +126,18 @@ export default function ServiceDeskHome({ initialUnits }: ServiceDeskHomeProps) 
               <span className="text-xs text-white/70 font-medium tracking-wider uppercase">Network Portal</span>
             </div>
           </div>
-          <div className="bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/10">
-            <span className="text-xs font-semibold text-white/70 tracking-wide">
-              University of Ibadan • ICT Network Unit
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/10">
+              <span className="text-xs font-semibold text-white/70 tracking-wide">
+                University of Ibadan • ICT Network Unit
+              </span>
+            </div>
+            <Link 
+              href="/dashboard/director" 
+              className="text-xs font-semibold bg-white text-[#1F4096] hover:bg-[#F9FAFB] px-3.5 py-1.5 rounded-lg border border-[#7E711F] transition-all duration-200 shadow-sm flex items-center gap-1"
+            >
+              Director Portal
+            </Link>
           </div>
         </div>
       </header>

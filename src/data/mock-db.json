@@ -16,5 +16,116 @@
       "description": "Handles institutional email access locks, departmental sub-domain setups, firewall white-listing, and server access exceptions."
     }
   ],
-  "tickets": []
+  "engineers": [
+    {
+      "id": "eng-1",
+      "name": "Olumide Awolowo",
+      "email": "olumide.awolowo@ui.edu.ng",
+      "role": "ENGINEER",
+      "unitId": "unit-2"
+    },
+    {
+      "id": "eng-2",
+      "name": "Adeshina Falola",
+      "email": "adeshina.falola@ui.edu.ng",
+      "role": "ENGINEER",
+      "unitId": "unit-2"
+    },
+    {
+      "id": "eng-3",
+      "name": "Chidi Nwachukwu",
+      "email": "chidi.nwachukwu@ui.edu.ng",
+      "role": "ENGINEER",
+      "unitId": "unit-2"
+    },
+    {
+      "id": "eng-4",
+      "name": "Amina Bello",
+      "email": "amina.bello@ui.edu.ng",
+      "role": "ENGINEER",
+      "unitId": "unit-3"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "ticket-101",
+      "ticketIdDisplay": "UI-1024",
+      "title": "Office LAN Port Fault in Faculty of Arts",
+      "description": "The LAN wall outlet in Room 204 has been completely dead since yesterday. We have tried multiple network patch cables and systems, but there is no link light on the switch side. This is halting administrative tasks.",
+      "priority": "MEDIUM",
+      "status": "SUBMITTED",
+      "complainerEmail": "arts.admin@ui.edu.ng",
+      "complainerPhone": "08031234567",
+      "faculty": "Faculty of Arts",
+      "department": "History",
+      "roomNumber": "Room 204, Administrative Block",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-14T10:00:00.000Z",
+      "updatedAt": "2026-06-14T10:00:00.000Z"
+    },
+    {
+      "id": "ticket-102",
+      "ticketIdDisplay": "UI-1025",
+      "title": "Wi-Fi Router IP Conflict in Department of Chemistry",
+      "description": "Users connecting to UI-CHEM-WIFI are getting IP conflict errors. The local router seems to be conflict-assigning IPs that overlap with the departmental static IP pool. Needs DHCP lease pool reset or router reconfiguration.",
+      "priority": "HIGH",
+      "status": "ESCALATED",
+      "complainerEmail": "chem.head@ui.edu.ng",
+      "complainerPhone": "08055554321",
+      "faculty": "Faculty of Science",
+      "department": "Chemistry",
+      "roomNumber": "Departmental Office, Ground Floor",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-14T11:30:00.000Z",
+      "updatedAt": "2026-06-14T11:30:00.000Z"
+    },
+    {
+      "id": "ticket-103",
+      "ticketIdDisplay": "UI-1026",
+      "title": "Broken Wall Jack Replacement in Faculty of Education",
+      "description": "Physical damage to the network socket. The plastic clip-in interface is broken, causing the Ethernet cable to fall out continuously. We need a replacement RJ45 faceplate installed.",
+      "priority": "LOW",
+      "status": "SUBMITTED",
+      "complainerEmail": "edu.ict@ui.edu.ng",
+      "complainerPhone": "08077778899",
+      "faculty": "Faculty of Education",
+      "department": "Teacher Education",
+      "roomNumber": "Staff Room B",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-14T12:00:00.000Z",
+      "updatedAt": "2026-06-14T12:00:00.000Z"
+    },
+    {
+      "id": "ticket-104",
+      "ticketIdDisplay": "UI-1027",
+      "title": "Core Fiber Break near Trenchard Hall",
+      "description": "Exhaustive backbone link drop. The connection between Trenchard Hall switch and ICT core switch room went down during construction works. Physical link down detected.",
+      "priority": "CRITICAL",
+      "status": "SUBMITTED",
+      "complainerEmail": "noc.admin@ui.edu.ng",
+      "complainerPhone": "08022223333",
+      "faculty": "Administration",
+      "department": "ICT Network Core",
+      "roomNumber": "Trenchard Hall Duct",
+      "unitId": "unit-1",
+      "createdAt": "2026-06-14T08:15:00.000Z",
+      "updatedAt": "2026-06-14T08:15:00.000Z"
+    },
+    {
+      "id": "ticket-105",
+      "ticketIdDisplay": "UI-1028",
+      "title": "Faculty of Technology Lab Wi-Fi IP Conflict",
+      "description": "DHCP server is not assigning IP addresses to student devices. We need to clear static IP conflicts on local APs.",
+      "priority": "MEDIUM",
+      "status": "RESOLVED",
+      "complainerEmail": "tech.lab@ui.edu.ng",
+      "complainerPhone": "08099998888",
+      "faculty": "Faculty of Technology",
+      "department": "Mechanical Engineering",
+      "roomNumber": "Lab 2A",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-13T14:22:00.000Z",
+      "updatedAt": "2026-06-14T09:00:00.000Z"
+    }
+  ]
 }
