@@ -2,8 +2,9 @@
 
 import React, { useState, useTransition } from 'react';
 import { Unit, Ticket } from '@/types';
-import { createTicketAction } from '@/app/actions';
+import { createTicketAction, checkTicketTrackingIdAction } from '@/app/actions';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Network, 
   HelpCircle, 
@@ -19,7 +20,8 @@ import {
   Info,
   Building2,
   Copy,
-  Check
+  Check,
+  Search
 } from 'lucide-react';
 
 interface ServiceDeskHomeProps {
@@ -27,6 +29,8 @@ interface ServiceDeskHomeProps {
 }
 
 export default function ServiceDeskHome({ initialUnits }: ServiceDeskHomeProps) {
+  const router = useRouter();
+
   // Client state
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   
@@ -44,6 +48,11 @@ export default function ServiceDeskHome({ initialUnits }: ServiceDeskHomeProps) 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successTicket, setSuccessTicket] = useState<Ticket | null>(null);
   const [copiedId, setCopiedId] = useState(false);
+
+  // Tracking states
+  const [trackingIdInput, setTrackingIdInput] = useState('');
+  const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [isTrackingPending, startTrackingTransition] = useTransition();
 
   // Icon mapping for University of Ibadan Service Desk Units
   const getUnitIcon = (id: string) => {
@@ -78,6 +87,27 @@ export default function ServiceDeskHome({ initialUnits }: ServiceDeskHomeProps) 
     setSelectedUnitId(null);
     setSuccessTicket(null);
     setErrorMsg(null);
+    setTrackingIdInput('');
+    setTrackingError(null);
+  };
+
+  const handleTrackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setTrackingError(null);
+
+    if (!trackingIdInput.trim()) {
+      setTrackingError('Please enter a tracking ID first.');
+      return;
+    }
+
+    startTrackingTransition(async () => {
+      const res = await checkTicketTrackingIdAction(trackingIdInput);
+      if (res.success && res.ticketId) {
+        router.push(`/track/${res.ticketId}`);
+      } else {
+        setTrackingError(res.error || 'No active record found with that tracking ID. Please check the reference code.');
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -303,224 +333,285 @@ export default function ServiceDeskHome({ initialUnits }: ServiceDeskHomeProps) 
               </div>
             </section>
 
-            {/* 4. The Complaint Form Component */}
-            <section className="space-y-6">
-              <div className="text-center max-w-xl mx-auto space-y-1">
-                <h3 className="text-xl font-bold text-[#1F4096] tracking-tight">Step 2: Enter Complaint Details</h3>
-                <p className="text-sm text-[#4B5563]">
-                  Please fill out the form below. Anonymous submissions are supported; no login required.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg border border-gray-200 p-8 max-w-3xl mx-auto space-y-6">
+            {/* 4. The Form & Tracker Layout */}
+            <section className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 
-                {/* Destination High-Visibility Info Bar */}
-                <div className="transition-all duration-300">
-                  {selectedUnit ? (
-                    <div className="bg-blue-50 border-l-4 border-[#1F4096] p-4 rounded-r-lg flex items-center gap-3">
-                      <Info className="w-5 h-5 text-[#1F4096] shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold text-[#1A212C]">
-                          Selected Destination: <span className="font-bold text-[#1F4096]">{selectedUnit.name}</span>
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-amber-50 border-l-4 border-[#7E711F] p-4 rounded-r-lg flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 text-[#7E711F] shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold text-[#7E711F]">
-                          Warning: Please select a target support unit from the grid above to activate the form.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Form fields */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  
-                  {/* Email & Phone input grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="email" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                          <Mail className="w-4 h-4 text-[#4B5563]" />
-                        </span>
-                        <input
-                          id="email"
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="staff@ui.edu.ng"
-                          className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
-                        />
-                      </div>
-                      <span className="text-[10px] text-[#4B5563] mt-1 block">Preferably your official university mail.</span>
-                    </div>
-
-                    <div>
-                      <label htmlFor="phone" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                        Phone Number
-                      </label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                          <Phone className="w-4 h-4 text-[#4B5563]" />
-                        </span>
-                        <input
-                          id="phone"
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="080XXXXXXXX"
-                          className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
-                        />
-                      </div>
-                    </div>
+                {/* Create Ticket Card Container */}
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm space-y-6">
+                  <div className="space-y-1 pb-4 border-b border-gray-100">
+                    <h3 className="text-xl font-bold text-[#1F4096] tracking-tight">Step 2: Enter Complaint Details</h3>
+                    <p className="text-sm text-[#4B5563]">
+                      Please fill out the details below to log a new network issue. Anonymous submissions are supported.
+                    </p>
                   </div>
 
-                  {/* Faculty dropdown & Department text grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="faculty" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                        Faculty <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                          <Building2 className="w-4 h-4 text-[#4B5563]" />
-                        </span>
-                        <select
-                          id="faculty"
-                          value={faculty}
-                          onChange={(e) => setFaculty(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal appearance-none transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
-                        >
-                          <option value="Faculty of Science">Faculty of Science</option>
-                          <option value="Faculty of Arts">Faculty of Arts</option>
-                          <option value="Faculty of Technology">Faculty of Technology</option>
-                          <option value="Faculty of Social Sciences">Faculty of Social Sciences</option>
-                          <option value="College of Medicine">College of Medicine</option>
-                        </select>
-                        <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[#4B5563] text-xs">
-                          ▼
-                        </span>
+                  {/* Destination High-Visibility Info Bar */}
+                  <div className="transition-all duration-300">
+                    {selectedUnit ? (
+                      <div className="bg-blue-50 border-l-4 border-[#1F4096] p-4 rounded-r-lg flex items-center gap-3">
+                        <Info className="w-5 h-5 text-[#1F4096] shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-[#1A212C]">
+                            Selected Destination: <span className="font-bold text-[#1F4096]">{selectedUnit.name}</span>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-amber-50 border-l-4 border-[#7E711F] p-4 rounded-r-lg flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-[#7E711F] shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-[#7E711F]">
+                            Warning: Please select a target support unit from the grid above to activate the form.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Form fields */}
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    
+                    {/* Email & Phone input grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label htmlFor="email" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                          Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Mail className="w-4 h-4 text-[#4B5563]" />
+                          </span>
+                          <input
+                            id="email"
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="staff@ui.edu.ng"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                          />
+                        </div>
+                        <span className="text-[10px] text-[#4B5563] mt-1 block">Preferably your official university mail.</span>
+                      </div>
+
+                      <div>
+                        <label htmlFor="phone" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                          Phone Number
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Phone className="w-4 h-4 text-[#4B5563]" />
+                          </span>
+                          <input
+                            id="phone"
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="080XXXXXXXX"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                          />
+                        </div>
                       </div>
                     </div>
 
+                    {/* Faculty dropdown & Department text grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label htmlFor="faculty" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                          Faculty <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Building2 className="w-4 h-4 text-[#4B5563]" />
+                          </span>
+                          <select
+                            id="faculty"
+                            value={faculty}
+                            onChange={(e) => setFaculty(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal appearance-none transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                          >
+                            <option value="Faculty of Science">Faculty of Science</option>
+                            <option value="Faculty of Arts">Faculty of Arts</option>
+                            <option value="Faculty of Technology">Faculty of Technology</option>
+                            <option value="Faculty of Social Sciences">Faculty of Social Sciences</option>
+                            <option value="College of Medicine">College of Medicine</option>
+                          </select>
+                          <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[#4B5563] text-xs">
+                            ▼
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="department" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                          Department <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <Building className="w-4 h-4 text-[#4B5563]" />
+                          </span>
+                          <input
+                            id="department"
+                            type="text"
+                            required
+                            value={department}
+                            onChange={(e) => setDepartment(e.target.value)}
+                            placeholder="e.g. Department of Computer Science"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Specific Location Input */}
                     <div>
-                      <label htmlFor="department" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                        Department <span className="text-red-500">*</span>
+                      <label htmlFor="location" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                        Specific Location / Office / Room Number <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                          <Building className="w-4 h-4 text-[#4B5563]" />
+                          <MapPin className="w-4 h-4 text-[#4B5563]" />
                         </span>
                         <input
-                          id="department"
+                          id="location"
                           type="text"
                           required
-                          value={department}
-                          onChange={(e) => setDepartment(e.target.value)}
-                          placeholder="e.g. Department of Computer Science"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          placeholder="e.g., Room 204, Second Floor"
                           className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
                         />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Specific Location Input */}
-                  <div>
-                    <label htmlFor="location" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                      Specific Location / Office / Room Number <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <MapPin className="w-4 h-4 text-[#4B5563]" />
-                      </span>
-                      <input
-                        id="location"
-                        type="text"
+                    {/* Short Issue Summary */}
+                    <div>
+                      <label htmlFor="title" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                        Short Issue Summary <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <FileText className="w-4 h-4 text-[#4B5563]" />
+                        </span>
+                        <input
+                          id="title"
+                          type="text"
+                          required
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          placeholder="e.g. Broken wall jack or Department switch blinking orange"
+                          className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Detailed Description */}
+                    <div>
+                      <label htmlFor="description" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                        Detailed Description of the Problem <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        id="description"
                         required
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="e.g., Room 204, Second Floor"
-                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                        rows={5}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Provide all relevant symptoms, when it started, specific error messages, or devices affected..."
+                        className="w-full px-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
                       />
                     </div>
-                  </div>
 
-                  {/* Short Issue Summary */}
-                  <div>
-                    <label htmlFor="title" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                      Short Issue Summary <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <FileText className="w-4 h-4 text-[#4B5563]" />
-                      </span>
-                      <input
-                        id="title"
-                        type="text"
-                        required
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="e.g. Broken wall jack or Department switch blinking orange"
-                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
-                      />
+                    {/* Errors display */}
+                    {errorMsg && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 text-red-800 text-sm font-medium">
+                        <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
+                        <div>{errorMsg}</div>
+                      </div>
+                    )}
+
+                    {/* Action Submit Button */}
+                    <div>
+                      <button
+                        type="submit"
+                        disabled={isPending}
+                        className={`w-full py-3 bg-[#1F4096] hover:bg-[#152e72] text-white text-sm font-bold rounded-lg focus:ring-4 focus:ring-[#1F4096]/30 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 ${
+                          isPending ? 'opacity-75 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {isPending ? (
+                          <>
+                            <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                            <span>Routing & Registering Ticket...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Submit Network Support Ticket</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
                     </div>
+                  </form>
+                </div>
+
+                {/* Inspect Existing Ticket Status Card Container */}
+                <div className="lg:col-span-1 bg-white rounded-xl border border-gray-200 p-6 md:p-8 shadow-sm space-y-4 sticky top-24">
+                  <div className="space-y-1 pb-4 border-b border-gray-100">
+                    <h3 className="text-lg font-bold text-[#1F4096] tracking-tight">Inspect Existing Ticket Status</h3>
+                    <p className="text-xs text-[#4B5563]">
+                      Track the real-time resolution progress of your complaint.
+                    </p>
                   </div>
 
-                  {/* Detailed Description */}
-                  <div>
-                    <label htmlFor="description" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
-                      Detailed Description of the Problem <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      id="description"
-                      required
-                      rows={5}
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Provide all relevant symptoms, when it started, specific error messages, or devices affected to help technicians debug the fault faster."
-                      className="w-full px-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
-                    />
-                  </div>
-
-                  {/* Errors display */}
-                  {errorMsg && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 text-red-800 text-sm font-medium">
-                      <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
-                      <div>{errorMsg}</div>
+                  <form onSubmit={handleTrackSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="trackingId" className="block text-xs font-bold text-[#1A212C] uppercase tracking-wide mb-1.5">
+                        Ticket ID / Reference Code
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <Search className="w-4 h-4 text-[#4B5563]" />
+                        </span>
+                        <input
+                          id="trackingId"
+                          type="text"
+                          required
+                          value={trackingIdInput}
+                          onChange={(e) => setTrackingIdInput(e.target.value)}
+                          placeholder="Enter Ticket ID (e.g., UI-74A9)"
+                          className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F9FAFB] border border-gray-300 rounded-lg text-[#1A212C] font-normal transition-all duration-200 outline-none focus:border-[#1F4096] focus:ring-2 focus:ring-[#1F4096]/10"
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  {/* Action Submit Button */}
-                  <div>
+                    {trackingError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2.5 text-red-800 text-xs font-medium">
+                        <AlertCircle className="w-4.5 h-4.5 shrink-0 text-red-600 mt-0.5 text-left" />
+                        <span className="text-left leading-snug">{trackingError}</span>
+                      </div>
+                    )}
+
                     <button
                       type="submit"
-                      disabled={isPending}
-                      className={`w-full py-3 bg-[#1F4096] text-white text-sm font-bold rounded-lg hover:bg-[#152e72] focus:ring-4 focus:ring-[#1F4096]/30 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 ${
-                        isPending ? 'opacity-75 cursor-not-allowed' : ''
-                      }`}
+                      disabled={isTrackingPending}
+                      className="w-full py-2.5 bg-[#1F4096] hover:bg-[#152e72] text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
                     >
-                      {isPending ? (
+                      {isTrackingPending ? (
                         <>
-                          <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
-                          <span>Routing & Registering Ticket...</span>
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                          <span>Searching...</span>
                         </>
                       ) : (
                         <>
-                          <span>Submit Network Support Ticket</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <span>Track Status</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </>
                       )}
                     </button>
-                  </div>
-                </form>
+                  </form>
+                </div>
+
               </div>
             </section>
           </>

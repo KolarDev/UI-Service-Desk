@@ -14,6 +14,7 @@ export interface User {
   name: string;
   role: Role;
   unitId?: string;
+  avatar?: string;
 }
 
 export interface Ticket {
@@ -33,16 +34,16 @@ export interface Ticket {
   assignedTo?: User;
   createdAt: string;
   updatedAt: string;
+  logs?: TicketLog[];
 }
 
 export interface TicketLog {
   id: string;
-  ticketId: string;
-  userId?: string;
-  user?: User;
-  fromStatus?: TicketStatus;
-  toStatus: TicketStatus;
-  commentText?: string;
-  isSystemLog: boolean;
-  createdAt: string;
+  timestamp: string;
+  authorName: string;
+  authorType: 'ENGINEER' | 'COMPLAINER';
+  authorAvatar: string | null;
+  logType: 'MILESTONE' | 'ESCALATION' | 'RESOLUTION';
+  text: string;
+  attachmentName: string | null;
 }
