@@ -123,6 +123,142 @@
       "createdAt": "2026-06-15T12:20:22.388Z",
       "updatedAt": "2026-06-15T12:20:22.388Z",
       "logs": []
+    },
+    {
+      "id": "86fac281-99c6-4c3a-bf49-bba8a7cf1ec6",
+      "ticketIdDisplay": "UI-3325",
+      "title": "Broken cable fix",
+      "description": "we have a broken cable disconnecting our wifi",
+      "priority": "MEDIUM",
+      "status": "ASSIGNED",
+      "complainerEmail": "muhyideenabdulbasit11@gmail.com",
+      "complainerPhone": "09061630421",
+      "faculty": "Faculty of Science",
+      "department": "Chemistry",
+      "roomNumber": "Hod office",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-15T14:40:48.740Z",
+      "updatedAt": "2026-06-15T14:44:06.602Z",
+      "logs": [
+        {
+          "id": "log-070d3e3a-eb33-4694-9b5f-0987a86290d3",
+          "timestamp": "2026-06-15T14:43:15.740Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "i have investigated it",
+          "attachmentName": null
+        },
+        {
+          "id": "log-eaec881a-a98f-4644-a207-24db5153ce48",
+          "timestamp": "2026-06-15T14:43:30.553Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "i have resolved it",
+          "attachmentName": null
+        },
+        {
+          "id": "log-f70c795f-3526-44eb-8b9e-64a9aecc8ce3",
+          "timestamp": "2026-06-15T14:44:06.601Z",
+          "authorName": "Complainer (Public User)",
+          "authorType": "COMPLAINER",
+          "authorAvatar": null,
+          "logType": "MILESTONE",
+          "text": "okay it working",
+          "attachmentName": null
+        }
+      ],
+      "assignedToId": "eng-1"
+    },
+    {
+      "id": "0ce8089c-a427-482c-9022-9f3e701d764f",
+      "ticketIdDisplay": "UI-4201",
+      "title": "issue with wifi",
+      "description": "we have issue withour eifi",
+      "priority": "MEDIUM",
+      "status": "ASSIGNED",
+      "complainerEmail": "muhyideenabdulbasit2@gmail.com",
+      "faculty": "Faculty of Science",
+      "department": "Biology",
+      "roomNumber": "hod office",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-15T14:49:51.470Z",
+      "updatedAt": "2026-06-15T15:05:19.375Z",
+      "logs": [
+        {
+          "id": "log-43cf31f3-740b-4b29-9016-a325520ea589",
+          "timestamp": "2026-06-15T15:05:06.809Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "i am working on it",
+          "attachmentName": null
+        },
+        {
+          "id": "log-b8b2cd67-0d6d-4f84-aaa0-44bb22f51237",
+          "timestamp": "2026-06-15T15:05:19.375Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "i am done",
+          "attachmentName": null
+        }
+      ],
+      "assignedToId": "eng-1"
+    },
+    {
+      "id": "faeda4b1-75d4-4fe2-9be4-94b1f82e2833",
+      "ticketIdDisplay": "UI-3120",
+      "title": "Cable disconnected",
+      "description": "our wifi wifi cable has disconnected",
+      "priority": "MEDIUM",
+      "status": "ASSIGNED",
+      "complainerEmail": "muhyideenabdulbasit11@gmail.com",
+      "complainerPhone": "0906161980",
+      "faculty": "Faculty of Science",
+      "department": "Biology",
+      "roomNumber": "Hod office",
+      "unitId": "unit-2",
+      "createdAt": "2026-06-17T09:57:08.488Z",
+      "updatedAt": "2026-06-17T10:00:20.637Z",
+      "logs": [
+        {
+          "id": "log-a861d147-38b9-498d-9e0b-8db3f7ff5d80",
+          "timestamp": "2026-06-17T09:59:31.875Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "I have satrted working on it",
+          "attachmentName": null
+        },
+        {
+          "id": "log-72fdad11-98bb-4c4f-9d0b-880f18c5d2c6",
+          "timestamp": "2026-06-17T09:59:44.458Z",
+          "authorName": "Engineer Kola",
+          "authorType": "ENGINEER",
+          "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Kola",
+          "logType": "MILESTONE",
+          "text": "i am done",
+          "attachmentName": null
+        },
+        {
+          "id": "log-476f7caf-401d-45dc-8b8b-462195a8dd10",
+          "timestamp": "2026-06-17T10:00:20.637Z",
+          "authorName": "Complainer (Public User)",
+          "authorType": "COMPLAINER",
+          "authorAvatar": null,
+          "logType": "MILESTONE",
+          "text": "okay thank you",
+          "attachmentName": null
+        }
+      ],
+      "assignedToId": "eng-1"
     }
   ]
 }

@@ -15,8 +15,8 @@ import {
   Mail,
   FileText,
   ChevronRight,
-  Download,
-  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
   Trash2,
   Check,
   Send,
@@ -43,11 +43,14 @@ export default function EngineerDashboardClient({
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
-  // Consolidated Form State
+  // Form State
   const [commentText, setCommentText] = useState('');
   const [actionType, setActionType] = useState<'MILESTONE' | 'ESCALATION' | 'RESOLUTION'>('MILESTONE');
   const [mockAttachment, setMockAttachment] = useState<string | null>(null);
   const [showMockFiles, setShowMockFiles] = useState(false);
+
+  // Accordion toggle state for metadata
+  const [isMetadataExpanded, setIsMetadataExpanded] = useState(true);
 
   // Server Action state
   const [isPending, startTransition] = useTransition();
@@ -57,7 +60,6 @@ export default function EngineerDashboardClient({
   // Sync tickets prop
   useEffect(() => {
     setTickets(initialTickets);
-    // If the currently selected ticket is resolved/escalated (and removed from prop if not escalated in unit), clear selection
     if (selectedTicketId && !initialTickets.some(t => t.id === selectedTicketId)) {
       setSelectedTicketId(null);
     }
@@ -65,10 +67,12 @@ export default function EngineerDashboardClient({
 
   const activeTicket = tickets.find(t => t.id === selectedTicketId);
 
-  // Check if active ticket is locked (escalated or assigned to someone else)
-  // Lock triggers if status is ESCALATED, or if assignedToId !== "eng-1" (or is null/undefined)
+  // Check if Kola is in the active roster
+  const isKolaAssigned = activeTicket?.assignedEngineerIds && activeTicket.assignedEngineerIds.includes('eng-1');
+  
+  // View-Only Lock: If the status is "ESCALATED", or if his ID is not in the active roster array, the form is disabled.
   const isLocked = activeTicket
-    ? activeTicket.status === 'ESCALATED' || activeTicket.assignedToId !== 'eng-1'
+    ? activeTicket.status === 'ESCALATED' || !isKolaAssigned
     : false;
 
   // Clear feedback messages
@@ -101,16 +105,14 @@ export default function EngineerDashboardClient({
         setShowMockFiles(false);
         setActionType('MILESTONE');
         
-        // Show success alert
         setSuccessMsg(
           actionType === 'MILESTONE'
             ? 'Milestone update posted successfully!'
             : actionType === 'ESCALATION'
-            ? 'Handoff submitted and ticket escalated back to Director.'
+            ? 'Handoff submitted and ticket escalated.'
             : 'Ticket resolved and closed out successfully.'
         );
         
-        // If escalated or resolved, clear selected ticket as it changes state
         if (actionType === 'ESCALATION' || actionType === 'RESOLUTION') {
           setSelectedTicketId(null);
         }
@@ -122,7 +124,7 @@ export default function EngineerDashboardClient({
     });
   };
 
-  // Helper for priority color tags
+  // Helper for priority colors
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
       case 'CRITICAL':
@@ -137,7 +139,7 @@ export default function EngineerDashboardClient({
     }
   };
 
-  // Timeline styling based on logType
+  // Timeline styling
   const getLogCardStyles = (logType: string) => {
     switch (logType) {
       case 'ESCALATION':
@@ -149,6 +151,15 @@ export default function EngineerDashboardClient({
         return 'bg-white border border-gray-200 border-l-4 border-l-[#1F4096]';
     }
   };
+
+  // Roster display name lookup
+  const getAssignedNames = (assignedIds: string[]) => {
+    if (!assignedIds || assignedIds.length === 0) return 'Unassigned';
+    return assignedIds.map(id => id === 'eng-1' ? 'Engineer Kola' : id === 'eng-2' ? 'Engineer Chioma' : id).join(', ');
+  };
+
+  // Find Kola's instruction on the active ticket
+  const myInstruction = activeTicket?.privateInstructions?.find(pi => pi.engineerId === 'eng-1')?.instructionText;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F9FAFB] text-[#1A212C] font-sans">
@@ -250,7 +261,7 @@ export default function EngineerDashboardClient({
             </div>
 
             {/* Tickets list */}
-            <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[calc(100vh-250px)] overflow-y-auto pr-1">
               {tickets.length === 0 ? (
                 <div className="bg-white rounded-xl border border-dashed border-gray-300 p-8 text-center space-y-3">
                   <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mx-auto">
@@ -275,19 +286,18 @@ export default function EngineerDashboardClient({
                         clearMessages();
                       }}
                       className={cn(
-                        'w-full text-left bg-white rounded-xl p-4 border transition-all duration-200 shadow-sm hover:shadow-md hover:border-[#7E711F]/50 flex flex-col gap-2 relative overflow-hidden group',
+                        'w-full text-left bg-white rounded-lg p-3 border transition-all duration-200 shadow-sm hover:shadow-md hover:border-[#7E711F]/50 flex flex-col gap-2 relative overflow-hidden group',
                         isSelected
                           ? 'border-2 border-[#7E711F] ring-2 ring-[#7E711F]/15'
                           : 'border-gray-200'
                       )}
                     >
-                      {/* Selection highlight strip */}
                       {isSelected && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7E711F]" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#7E711F]" />
                       )}
 
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-[11px] font-mono font-bold bg-gray-100 border border-gray-200 text-[#4B5563] px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono font-bold bg-gray-100 border border-gray-200 text-[#4B5563] px-2 py-0.5 rounded">
                           {ticket.ticketIdDisplay || 'UI-TICKET'}
                         </span>
                         
@@ -309,19 +319,19 @@ export default function EngineerDashboardClient({
                       </div>
 
                       <div>
-                        <h4 className="font-bold text-sm text-[#1A212C] group-hover:text-[#1F4096] transition-colors leading-tight line-clamp-2">
+                        <h4 className="font-bold text-xs text-[#1A212C] group-hover:text-[#1F4096] transition-colors leading-tight line-clamp-1">
                           {ticket.title}
                         </h4>
-                        <p className="text-[11px] text-[#4B5563] font-medium mt-1.5 flex items-center gap-1">
+                        <p className="text-[10px] text-[#4B5563] font-medium mt-1 flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-[#7E711F]" />
                           {ticket.department} ({ticket.roomNumber})
                         </p>
                       </div>
 
-                      <div className="border-t border-gray-100 pt-2.5 mt-1 flex items-center justify-between text-[10px] text-[#4B5563]">
+                      <div className="border-t border-gray-100 pt-2 flex items-center justify-between text-[9px] text-[#4B5563]">
                         <span className="flex items-center gap-1 font-medium">
                           <Clock className="w-3 h-3 text-gray-400" />
-                          Created on {new Date(ticket.createdAt).toLocaleDateString()}
+                          Outage Date: {new Date(ticket.createdAt).toLocaleDateString()}
                         </span>
                         <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
                       </div>
@@ -347,24 +357,6 @@ export default function EngineerDashboardClient({
                     Select an active deployment ticket from the left panel list queue to view structural details, inspect complainers logs, upload field proofs, and submit milestone updates.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 w-full max-w-sm pt-4 border-t border-gray-100 text-left">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-[10px] font-bold text-[#4B5563] uppercase">
-                      My Workload
-                    </p>
-                    <p className="text-2xl font-extrabold text-[#1F4096]">
-                      {tickets.filter(t => t.assignedToId === 'eng-1' && t.status !== 'RESOLVED').length} Active
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-[10px] font-bold text-[#4B5563] uppercase">
-                      Escalated Tickets
-                    </p>
-                    <p className="text-2xl font-extrabold text-amber-600">
-                      {tickets.filter(t => t.status === 'ESCALATED').length} Unresolved
-                    </p>
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden min-h-[500px]">
@@ -376,7 +368,7 @@ export default function EngineerDashboardClient({
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono font-bold bg-[#1F4096]/10 border border-[#1F4096]/20 text-[#1F4096] px-2.5 py-0.5 rounded-full">
-                        {activeTicket.ticketIdDisplay || 'UI-74A9'}
+                        {activeTicket.ticketIdDisplay || 'UI-XXXX'}
                       </span>
                       <span className={cn(
                         "text-xs font-bold px-2.5 py-0.5 rounded-full border",
@@ -402,19 +394,59 @@ export default function EngineerDashboardClient({
                     <h3 className="text-lg font-bold text-[#1A212C] leading-snug">
                       {activeTicket.title}
                     </h3>
+                  </div>
+
+                  {/* Accordion Collapsible Detail Panel */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-[#F9FAFB]">
+                    <button
+                      type="button"
+                      onClick={() => setIsMetadataExpanded(!isMetadataExpanded)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200 text-xs font-bold text-[#1A212C] uppercase tracking-wide cursor-pointer hover:bg-gray-100/80 transition-colors"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <User className="w-4 h-4 text-[#1F4096]" />
+                        Ticket Metadata & Location Details
+                      </span>
+                      {isMetadataExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-[#4B5563] pt-1">
-                      <p className="flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[#7E711F] shrink-0" />
-                        <span className="font-bold text-[#1A212C]">Location:</span>{' '}
-                        {activeTicket.faculty} • {activeTicket.department} ({activeTicket.roomNumber})
-                      </p>
-                      <p className="flex items-center gap-1.5">
-                        <Mail className="w-4 h-4 text-[#7E711F] shrink-0" />
-                        <span className="font-bold text-[#1A212C]">Complainer:</span>{' '}
-                        <span className="font-mono text-[11px]">{activeTicket.complainerEmail}</span>
-                      </p>
-                    </div>
+                    {isMetadataExpanded && (
+                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div className="space-y-2">
+                          <h4 className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wide">
+                            Complainer Contact
+                          </h4>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 text-xs text-[#1A212C]">
+                              <Mail className="w-3.5 h-3.5 text-[#1F4096] shrink-0" />
+                              <span className="font-medium break-all">{activeTicket.complainerEmail || 'N/A'}</span>
+                            </div>
+                            {activeTicket.complainerPhone && (
+                              <div className="flex items-center gap-2 text-xs text-[#1A212C]">
+                                <Mail className="w-3.5 h-3.5 text-[#1F4096] shrink-0" />
+                                <span>{activeTicket.complainerPhone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wide">
+                            Incident Location
+                          </h4>
+                          <div className="space-y-1">
+                            <div className="flex items-start gap-2 text-xs text-[#1A212C]">
+                              <MapPin className="w-3.5 h-3.5 text-[#1F4096] shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-semibold">{activeTicket.faculty}</p>
+                                <p className="text-[11px] text-[#4B5563]">{activeTicket.department}</p>
+                                <p className="text-[11px] text-gray-400">Room: {activeTicket.roomNumber}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-150 mt-1">
@@ -426,17 +458,38 @@ export default function EngineerDashboardClient({
                       {activeTicket.description}
                     </p>
                   </div>
+
+                  {/* Active Assigned Engineers Roster */}
+                  <div className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 pt-1">
+                    <span className="text-gray-400 uppercase text-[10px]">Assigned Personnel:</span>
+                    <span className="bg-blue-50 border border-blue-100 text-[#1F4096] px-2.5 py-0.5 rounded-full font-mono text-[11px]">
+                      {getAssignedNames(activeTicket.assignedEngineerIds)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Collaborative Timeline Logs Area */}
-                <div className="flex-grow p-6 bg-gray-50/50 max-h-[400px] overflow-y-auto border-b border-gray-200">
+                <div className="flex-grow p-5 bg-gray-50/50 max-h-[350px] overflow-y-auto border-b border-gray-200">
+                  
+                  {/* Private Instruction Alert Box */}
+                  {myInstruction && (
+                    <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg shadow-sm flex items-start gap-3 mb-5 animate-fadeIn">
+                      <div className="p-1 rounded-full bg-blue-100 text-blue-800 shrink-0">
+                        <FileCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-950">🎯 Internal Assignment Instructions for You</p>
+                        <p className="text-xs text-blue-800 mt-1 italic font-medium">{myInstruction}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <h4 className="text-xs font-extrabold text-[#1A212C] uppercase tracking-wider mb-5 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#7E711F]" />
                     Collaborative Troubleshooting Timeline
                   </h4>
 
-                  {/* Vertical Timeline Thread */}
-                  <div className="relative border-l-2 border-[#7E711F]/30 ml-4 pl-6 space-y-6 pb-2">
+                  <div className="relative border-l-2 border-[#7E711F]/30 ml-4 pl-6 space-y-5 pb-2">
                     {(!activeTicket.logs || activeTicket.logs.length === 0) ? (
                       <p className="text-xs text-gray-400 italic">No timeline entries yet.</p>
                     ) : (
@@ -446,8 +499,6 @@ export default function EngineerDashboardClient({
                         
                         return (
                           <div key={log.id} className="relative group/log animate-fadeIn">
-                            
-                            {/* Timeline circle badge */}
                             <div className="absolute -left-[35px] top-1.5 w-6 h-6 rounded-full border-2 border-[#7E711F] bg-white flex items-center justify-center overflow-hidden shadow-sm">
                               {isEngineer ? (
                                 <img
@@ -460,46 +511,41 @@ export default function EngineerDashboardClient({
                               )}
                             </div>
 
-                            <div className={cn("rounded-lg p-4 shadow-sm transition-all duration-200", logCardStyle)}>
-                              {/* Header row */}
-                              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <div className={cn("rounded-lg p-3.5 shadow-sm transition-all duration-200", logCardStyle)}>
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-bold text-[#1A212C]">
                                     {log.authorName}
                                   </span>
 
-                                  {/* Badges */}
                                   {isEngineer ? (
                                     <span className="bg-[#1F4096]/10 text-[#1F4096] border border-[#1F4096]/20 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono">
                                       [Network Unit]
                                     </span>
                                   ) : (
                                     <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono">
-                                      [Complainer Update]
+                                      [{log.authorType}]
                                     </span>
                                   )}
 
-                                  {/* Action Type Tag */}
                                   <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#4B5563]/70 font-mono">
                                     • {log.logType || 'MILESTONE'}
                                   </span>
                                 </div>
 
-                                <span className="text-[10px] text-gray-400 font-medium font-mono">
+                                <span className="text-[9px] text-gray-400 font-medium font-mono">
                                   {new Date(log.timestamp).toLocaleString()}
                                 </span>
                               </div>
 
-                              {/* Text content */}
                               <p className="text-xs text-[#4B5563] leading-relaxed whitespace-pre-line">
                                 {log.text}
                               </p>
 
-                              {/* Attachment badge */}
                               {log.attachmentName && (
-                                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded bg-gray-50 border border-gray-200 text-xs font-semibold text-[#1F4096] hover:bg-gray-100 transition-colors">
+                                <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-gray-50 border border-gray-200 text-xs font-semibold text-[#1F4096] hover:bg-gray-100 transition-colors">
                                   <Paperclip className="w-3.5 h-3.5 text-[#7E711F]" />
-                                  <span className="font-mono text-[11px]">📎 {log.attachmentName}</span>
+                                  <span className="font-mono text-[10px]">{log.attachmentName}</span>
                                 </div>
                               )}
                             </div>
@@ -513,14 +559,13 @@ export default function EngineerDashboardClient({
                 {/* Consolidated Action Form */}
                 <div className="border-t border-gray-200 bg-gray-50 p-5 space-y-4">
                   
-                  {/* Lock badge if view-only */}
                   {isLocked ? (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 flex items-start gap-3 text-amber-900 text-xs font-semibold">
                       <AlertCircle className="w-4.5 h-4.5 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-bold">This ticket is currently Escalated/Unassigned. Only a Director can modify this state.</p>
+                        <p className="font-bold">Comment Update Form Disabled (View-Only Lock)</p>
                         <p className="text-[11px] text-amber-700/80 font-normal mt-0.5">
-                          You are currently in view-only mode. You cannot submit field milestones, complete reports, or escalate this issue further until it is re-assigned to your queue.
+                          You cannot submit milestones or handoffs because this ticket is currently Escalated/Unassigned, or you are not in the active roster.
                         </p>
                       </div>
                     </div>
@@ -528,7 +573,7 @@ export default function EngineerDashboardClient({
                     <div>
                       <h4 className="text-xs font-extrabold text-[#1A212C] uppercase tracking-wider flex items-center gap-1.5 mb-1">
                         <FileCheck className="w-4 h-4 text-[#1F4096]" />
-                        Consolidated field operations form
+                        Consolidated Field Operations Form
                       </h4>
                       <p className="text-[11px] text-[#4B5563]">
                         Enter your log comment, choose the action type, and submit to update the ticket status.
@@ -537,8 +582,6 @@ export default function EngineerDashboardClient({
                   )}
 
                   <form onSubmit={handleFormSubmit} className={cn("space-y-4", isLocked && "opacity-50 pointer-events-none")}>
-                    
-                    {/* Textarea */}
                     <div>
                       <textarea
                         value={commentText}
@@ -547,7 +590,7 @@ export default function EngineerDashboardClient({
                           actionType === 'MILESTONE'
                             ? "Detail your current field diagnostics, patch tests, rack setups, or cable replacements..."
                             : actionType === 'ESCALATION'
-                            ? "Explain why control is being relinquished (e.g. requires outdoor fiber splicing gear)..."
+                            ? "Explain why control is being escalated (e.g. requires outdoor fiber splicing gear)..."
                             : "Provide the final resolution summary to mark this complaint resolved and closed..."
                         }
                         rows={3}
@@ -646,7 +689,7 @@ export default function EngineerDashboardClient({
                                 type="button"
                                 onClick={() => setShowMockFiles(!showMockFiles)}
                                 disabled={isLocked || isPending}
-                                className="w-full text-left py-2 px-3 border border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-xs text-[#4B5563] flex items-center justify-between gap-1.5 transition-colors bg-white font-medium"
+                                className="w-full text-left py-2 px-3 border border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-xs text-[#4B5563] flex items-center justify-between gap-1.5 transition-colors bg-white font-medium cursor-pointer"
                               >
                                 <span className="flex items-center gap-1">
                                   <Paperclip className="w-3.5 h-3.5 text-gray-400" />
@@ -656,7 +699,7 @@ export default function EngineerDashboardClient({
                               </button>
 
                               {showMockFiles && (
-                                <div className="absolute bottom-full right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-1.5 w-48 max-h-36 overflow-y-auto space-y-1">
+                                <div className="absolute bottom-full right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-1.5 w-48 max-h-36 overflow-y-auto space-y-1 animate-fadeIn">
                                   <p className="text-[9px] text-gray-405 px-1 font-bold uppercase tracking-wider border-b border-gray-100 pb-1 mb-1">
                                     Select Simulated Proof:
                                   </p>
@@ -668,7 +711,7 @@ export default function EngineerDashboardClient({
                                         setMockAttachment(file);
                                         setShowMockFiles(false);
                                       }}
-                                      className="w-full text-left px-2 py-1 rounded text-[10px] font-mono hover:bg-gray-50 text-gray-700 hover:text-[#1F4096] transition-colors"
+                                      className="w-full text-left px-2 py-1 rounded text-[10px] font-mono hover:bg-gray-50 text-gray-700 hover:text-[#1F4096] transition-colors cursor-pointer"
                                     >
                                       📎 {file}
                                     </button>
@@ -685,7 +728,7 @@ export default function EngineerDashboardClient({
                         <button
                           type="submit"
                           disabled={isLocked || isPending}
-                          className="w-full md:w-auto px-5 py-2 bg-[#1F4096] hover:bg-[#1F4096]/90 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow disabled:opacity-50"
+                          className="w-full md:w-auto px-5 py-2 bg-[#1F4096] hover:bg-[#1F4096]/90 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow disabled:opacity-50 cursor-pointer"
                         >
                           {isPending ? 'Submitting...' : 'Submit Update'}
                         </button>

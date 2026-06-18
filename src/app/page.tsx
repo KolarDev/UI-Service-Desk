@@ -1,5 +1,5 @@
 import ServiceDeskHome from '@/components/ServiceDeskHome';
-import { getUnits } from '@/lib/db';
+import { getUnitsAction } from '@/app/actions';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   }
 };
 
-export default function Home() {
-  const units = getUnits();
+export default async function Home() {
+  const units = await getUnitsAction();
   return <ServiceDeskHome initialUnits={units} />;
 }

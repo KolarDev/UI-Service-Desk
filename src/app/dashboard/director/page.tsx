@@ -1,4 +1,4 @@
-import { getTickets, getEngineers, getUnits } from '@/lib/db';
+import { getTicketsAction, getEngineersAction, getUnitsAction } from '@/app/actions';
 import DirectorDashboardClient from './DirectorDashboardClient';
 import { Metadata } from 'next';
 
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function DirectorDashboardPage() {
-  const tickets = getTickets();
-  const engineers = getEngineers();
-  const units = getUnits();
+  const tickets = await getTicketsAction();
+  const engineers = await getEngineersAction();
+  const units = await getUnitsAction();
 
   return (
     <DirectorDashboardClient

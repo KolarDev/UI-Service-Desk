@@ -1,4 +1,4 @@
-import { getTickets, getEngineers } from '@/lib/db';
+import { getTicketsAction, getEngineersAction } from '@/app/actions';
 import EngineerDashboardClient from './EngineerDashboardClient';
 import { Metadata } from 'next';
 
@@ -10,20 +10,20 @@ export const metadata: Metadata = {
 };
 
 export default async function EngineerDashboardPage() {
-  const tickets = getTickets();
-  const engineers = getEngineers();
+  const tickets = await getTicketsAction();
+  const engineers = await getEngineersAction();
 
   // Find Kola dynamically to get his technical unit
   const kola = engineers.find(e => e.id === 'eng-1');
   const kolaUnitId = kola?.unitId || 'unit-2';
 
   // Queue Rules:
-  // 1. All tickets assigned to him (assignedToId === "eng-1" && status !== "RESOLVED")
-  // 2. Any historical tickets belonging to his technical unit that have been ESCALATED (status === "ESCALATED")
+  // 1. All tickets assigned to him (assignedEngineerIds contains "eng-1")
+  // 2. Any tickets currently marked as "ESCALATED"
   const activeTickets = tickets.filter(t => {
-    const isAssignedToKola = t.assignedToId === 'eng-1' && t.status !== 'RESOLVED';
-    const isEscalatedInUnit = t.unitId === kolaUnitId && t.status === 'ESCALATED';
-    return isAssignedToKola || isEscalatedInUnit;
+    const isAssignedToKola = t.assignedEngineerIds && t.assignedEngineerIds.includes('eng-1');
+    const isEscalated = t.status === 'ESCALATED';
+    return isAssignedToKola || isEscalated;
   });
 
   return (

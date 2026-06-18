@@ -1,4 +1,4 @@
-import { getTickets } from '@/lib/db';
+import { getTicketsAction } from '@/app/actions';
 import TrackingViewClient from './TrackingViewClient';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -20,7 +20,7 @@ export default async function TrackPage({ params }: TrackPageProps) {
   const resolvedParams = await params;
   const ticketId = resolvedParams.ticketId;
 
-  const tickets = getTickets();
+  const tickets = await getTicketsAction();
   const ticket = tickets.find(
     t => t.id === ticketId || t.ticketIdDisplay?.toLowerCase() === ticketId.toLowerCase()
   );
